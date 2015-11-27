@@ -6,8 +6,8 @@
 // @author       zhangheli https://github.com/zhangheli/
 // @require      http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js
 // @match        http://*.dict.cn/*
-//@grant GM_xmlhttpRequest
-//@grant GM_openInTab
+// @grant GM_xmlhttpRequest
+// @grant GM_openInTab
 // ==/UserScript==
 
 function fetchWord(word, callback){
@@ -16,8 +16,7 @@ function fetchWord(word, callback){
         method: "GET",
         url: url,
         onload: function(xhr) {
-            var response = eval("(" + xhr.responseText + ")");
-            //console.log(xhr.responseText);
+            var response = JSON.parse(xhr.responseText);
             if (response.msg == "SUCCESS"){
                 var obj_id = response.data.object_id;
                 callback(obj_id);
@@ -29,8 +28,10 @@ function fetchWord(word, callback){
 
 function addBook(obj_id) {
     var url = "http://www.shanbay.com/api/v1/bdc/learning/";
-    var data = JSON.parse('{"id": ' + obj_id.toString() + ',"content_type":"vocabulary"}');
-    //console.log("data: " + JSON.stringify(data));
+    var data = {
+        id: obj_id,
+        content_type: "vocabulary"
+    };
     GM_xmlhttpRequest({
         method: "POST",
         data: JSON.stringify(data),
@@ -40,14 +41,14 @@ function addBook(obj_id) {
             "x-requested-with": "XMLHttpRequest"
         },
         onload: function(xhr) {
-            var response = eval("(" + xhr.responseText + ")");
-            //console.log(response);
+            var response = JSON.parse(xhr.responseText);
             if (response.msg == "SUCCESS"){
                 var req_id = response.data.id;
                 var newtab = "http://www.shanbay.com/review/learning/" + req_id;
                 GM_openInTab(newtab);
-            } else {
-                var url = "";
+            } else if(response.msg.match("Authentication") !== null){
+                var url = "http://www.shanbay.com/accounts/login/";
+                GM_openInTab(url);
             }
         }
     });
@@ -55,7 +56,7 @@ function addBook(obj_id) {
 
 $(document).ready(function(){
     var node = $('ul.dict-basic li')[0];
-    if (node == undefined) {
+    if (node === undefined) {
         node = $("ul.dict-basic-ul li")[0];
     }
     var root = node.parentElement;
@@ -72,7 +73,7 @@ $(document).ready(function(){
     });
     $(child).click(function(){
         var word = $("h1.word").html();
-        if (word == undefined) {
+        if (word === undefined) {
             word = $("h1.keyword").html();
         }
         fetchWord(word, addBook);
