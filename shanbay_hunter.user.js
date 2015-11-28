@@ -6,6 +6,7 @@
 // @author       zhangheli https://github.com/zhangheli/
 // @require      http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js
 // @match        http://*.dict.cn/*
+// @match        http://dict.cn/*
 // @grant GM_xmlhttpRequest
 // @grant GM_openInTab
 // ==/UserScript==
